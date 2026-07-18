@@ -4,4 +4,10 @@ import { fetchActiveOrgInstances } from '@/lib/api/orgs';
 import { queryKeys } from '@/lib/query/keys';
 import type { OrgType } from '@/types/domain';
 
-export function useActiveOrgInstances(type: OrgType) {}
+export function useActiveOrgInstances(type: OrgType) {
+  return useQuery({
+    queryKey: queryKeys.activeOrgInstances(type),
+    queryFn: () => fetchActiveOrgInstances(type),
+    select: (response) => response.data,
+  });
+}
