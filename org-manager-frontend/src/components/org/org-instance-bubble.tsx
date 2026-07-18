@@ -16,3 +16,10 @@ interface OrgInstanceBubbleProps {
   currentWeekId: number | null;
   onSelect: (id: number) => void;
 }
+
+export function OrgInstanceBubble({
+  instances,
+  selectedId,
+  currentWeekId,
+  onSelect,
+}: OrgInstanceBubbleProps) {}
