@@ -24,4 +24,8 @@ export function findClosestOrgInstance<T extends { date_meeting: string }>(
   });
 }
 
-export function sortByMeetingDateAsc<T extends { date_meeting: string }>(instances: T[]): T[] {}
+export function sortByMeetingDateAsc<T extends { date_meeting: string }>(instances: T[]): T[] {
+  return [...instances].sort(
+    (a, b) => new Date(a.date_meeting).getTime() - new Date(b.date_meeting).getTime()
+  );
+}
