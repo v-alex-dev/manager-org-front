@@ -10,5 +10,18 @@ export function formatMeetingDate(dateIso: string): string {
 export function findClosestOrgInstance<T extends { date_meeting: string }>(
   instances: T[],
   referenceDate: Date = new Date()
-): T | null;
+): T | null {
+  if (instances.length === 0) return null;
+
+  return instances.reduce((closest, current) => {
+    const closestDiff = Math.abs(
+      new Date(closest.date_meeting).getTime() - referenceDate.getTime()
+    );
+    const currentDiff = Math.abs(
+      new Date(current.date_meeting).getTime() - referenceDate.getTime()
+    );
+    return currentDiff < closestDiff ? current : closest;
+  });
+}
+
 export function sortByMeetingDateAsc<T extends { date_meeting: string }>(instances: T[]): T[] {}
