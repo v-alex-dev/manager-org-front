@@ -23,6 +23,8 @@ export function OrgInstanceBubble({
   currentWeekId,
   onSelect,
 }: OrgInstanceBubbleProps) {
+  const sorted = sortByMeetingDateAsc(instances);
+
   return (
     <Select
       value={selectedId ? String(selectedId) : undefined}
