@@ -1,35 +1,25 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { OrgInstanceBubble } from '@/components/org/org-instance-bubble';
+import { TaskList } from '@/components/org/task-list';
 import { useActiveOrgInstances } from '@/hooks/use-active-org-instances';
-import { findClosestOrgInstance } from '@/lib/dates';
+import { findCurrentOrgInstance } from '@/lib/dates';
 import type { OrgType } from '@/types/domain';
 
-const VALID_TYPES: OrgType[] = ['CFG', 'COMITE'];
+const ORG_LABELS: Record<OrgType, string> = { CFG: 'CFG', COMITE: 'Comité' };
+
+function isOrgType(value: string | undefined): value is OrgType {
+  return value === 'CFG' || value === 'COMITE';
+}
 
 export default function OrgPage() {
   const params = useParams<{ type: string }>();
-  const upperType = params.type?.toUpperCase() as OrgType | undefined;
-  const isValidType = upperType && VALID_TYPES.includes(upperType);
+  const upperType = params.type?.toUpperCase();
 
-  const { data: instances, isLoading } = useActiveOrgInstances(isValidType ? upperType : 'CFG');
-  const [selectedId, setSelectedId] = useState<number | null>(null);
-
-  const currentWeekInstance = useMemo(
-    () => (instances ? findClosestOrgInstance(instances) : null),
-    [instances]
-  );
-
-  useEffect(() => {
-    if (currentWeekInstance && selectedId === null) {
-      setSelectedId(currentWeekInstance.id);
-    }
-  }, [currentWeekInstance, selectedId]);
-
-  if (!isValidType) {
+  if (!isOrgType(upperType)) {
     return (
       <main className="mx-auto max-w-md px-4 py-10">
         <p className="text-sm text-destructive">Type d&apos;ORG invalide.</p>
@@ -37,29 +27,49 @@ export default function OrgPage() {
     );
   }
 
+  // key : changer de type (CFG vers Comité) remonte un composant neuf,
+  // donc la sélection repart de zéro sans effet de bord.
+  return <OrgScreen key={upperType} type={upperType} />;
+}
+
+function OrgScreen({ type }: { type: OrgType }) {
+  const { data: instances, isLoading, isError } = useActiveOrgInstances(type);
+  const [pickedId, setPickedId] = useState<number | null>(null);
+
+  const currentInstance = useMemo(
+    () => (instances ? findCurrentOrgInstance(instances) : null),
+    [instances]
+  );
+  const selectedInstance =
+    instances?.find((instance) => instance.id === pickedId) ?? currentInstance;
+
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 px-4 py-6">
-      <h1 className="text-xl font-semibold">Organe {upperType === 'CFG' ? 'CFG' : 'Comité'}</h1>
+      <h1 className="text-xl font-semibold">Organe {ORG_LABELS[type]}</h1>
 
       {isLoading && <p className="text-sm text-muted-foreground">Chargement des ORG...</p>}
 
-      {!isLoading && instances?.length === 0 && (
+      {isError && (
+        <p className="text-sm text-destructive" role="alert">
+          Impossible de charger les ORG.
+        </p>
+      )}
+
+      {instances && instances.length === 0 && (
         <p className="text-sm text-muted-foreground">Aucun ORG actif pour le moment.</p>
       )}
 
-      {!isLoading && instances && instances.length > 0 && (
+      {instances && instances.length > 0 && (
         <OrgInstanceBubble
           instances={instances}
-          selectedId={selectedId}
-          currentWeekId={currentWeekInstance?.id ?? null}
-          onSelect={setSelectedId}
+          selectedId={selectedInstance?.id ?? null}
+          currentWeekId={currentInstance?.id ?? null}
+          onSelect={setPickedId}
         />
       )}
 
       <div className="flex-1">
-        <p className="text-sm text-muted-foreground">
-          Tableau des tâches à venir à l&apos;étape suivante.
-        </p>
+        {selectedInstance && <TaskList orgInstanceId={selectedInstance.id} />}
       </div>
     </main>
   );
