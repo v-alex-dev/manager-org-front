@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
 import { OrgInstanceBubble } from '@/components/org/org-instance-bubble';
+import { TaskFormDialog } from '@/components/org/task-form-dialog';
 import { TaskList } from '@/components/org/task-list';
 import { useActiveOrgInstances } from '@/hooks/use-active-org-instances';
 import { findCurrentOrgInstance } from '@/lib/dates';
@@ -67,6 +68,8 @@ function OrgScreen({ type }: { type: OrgType }) {
           onSelect={setPickedId}
         />
       )}
+
+      {selectedInstance && <TaskFormDialog orgInstanceId={selectedInstance.id} />}
 
       <div className="flex-1">
         {selectedInstance && <TaskList orgInstanceId={selectedInstance.id} />}

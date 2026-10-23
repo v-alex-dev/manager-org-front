@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { fetchTasksForOrgInstance, toggleTaskStatus } from '@/lib/api/tasks';
+import { createTask, fetchTasksForOrgInstance, toggleTaskStatus } from '@/lib/api/tasks';
 import { queryKeys } from '@/lib/query/keys';
 import type { ApiCollection, Task } from '@/types/domain';
 
@@ -50,5 +50,13 @@ export function useToggleTaskStatus(orgInstanceId: number | null) {
 
     // Dans tous les cas, on se resynchronise avec le serveur.
     onSettled: () => queryClient.invalidateQueries({ queryKey: key }),
+  });
+}
+export function useCreateTask(orgInstanceId: number) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: createTask,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.tasks(orgInstanceId) }),
   });
 }
