@@ -1,17 +1,11 @@
-"use client";
+'use client';
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 
-import { fetchCurrentUser, login as loginRequest, logout as logoutRequest } from "@/lib/api/auth";
-import { clearToken, getToken, setToken } from "@/lib/auth/token-storage";
-import { ApiError } from "@/lib/api/client";
-import type { LoginPayload, User } from "@/types/domain";
+import { fetchCurrentUser, login as loginRequest, logout as logoutRequest } from '@/lib/api/auth';
+import { clearToken, getToken, setToken } from '@/lib/auth/token-storage';
+import { ApiError } from '@/lib/api/client';
+import type { LoginPayload, User } from '@/types/domain';
 
 interface AuthContextValue {
   user: User | null;
@@ -25,6 +19,11 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  useEffect(() => {
+    const onUnauthorized = () => setUser(null);
+    window.addEventListener('auth:unauthorized', onUnauthorized);
+    return () => window.removeEventListener('auth:unauthorized', onUnauthorized);
+  }, []);
 
   useEffect(() => {
     async function restoreSession() {

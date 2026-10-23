@@ -1,31 +1,24 @@
-export function formatMeetingDate(dateIso: string): string {
-  const date = new Date(dateIso);
-  return new Intl.DateTimeFormat('fr-FR', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-  }).format(date);
+function startOfIsoWeek(date: Date): Date {
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); // lundi
+  return d;
 }
 
-export function findClosestOrgInstance<T extends { date_meeting: string }>(
+export function findCurrentOrgInstance<T extends { date_meeting: string }>(
   instances: T[],
-  referenceDate: Date = new Date()
+  ref: Date = new Date()
 ): T | null {
   if (instances.length === 0) return null;
+  const start = startOfIsoWeek(ref);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 7);
 
-  return instances.reduce((closest, current) => {
-    const closestDiff = Math.abs(
-      new Date(closest.date_meeting).getTime() - referenceDate.getTime()
-    );
-    const currentDiff = Math.abs(
-      new Date(current.date_meeting).getTime() - referenceDate.getTime()
-    );
-    return currentDiff < closestDiff ? current : closest;
-  });
-}
+  const sorted = sortByMeetingDateAsc(instances);
+  const time = (i: T) => new Date(i.date_meeting).getTime();
 
-export function sortByMeetingDateAsc<T extends { date_meeting: string }>(instances: T[]): T[] {
-  return [...instances].sort(
-    (a, b) => new Date(a.date_meeting).getTime() - new Date(b.date_meeting).getTime()
+  return (
+    sorted.find((i) => time(i) >= start.getTime() && time(i) < end.getTime()) ??
+    sorted.find((i) => time(i) >= start.getTime()) ??
+    sorted[sorted.length - 1]
   );
 }
