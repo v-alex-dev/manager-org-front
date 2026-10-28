@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-
+import { useQueryClient } from '@tanstack/react-query';
 import { fetchCurrentUser, login as loginRequest, logout as logoutRequest } from '@/lib/api/auth';
 import { clearToken, getToken, setToken } from '@/lib/auth/token-storage';
 import { ApiError } from '@/lib/api/client';
@@ -19,11 +19,15 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
   useEffect(() => {
-    const onUnauthorized = () => setUser(null);
+    const onUnauthorized = () => {
+      setUser(null);
+      queryClient.clear();
+    };
     window.addEventListener('auth:unauthorized', onUnauthorized);
     return () => window.removeEventListener('auth:unauthorized', onUnauthorized);
-  }, []);
+  }, [queryClient]);
 
   useEffect(() => {
     async function restoreSession() {
@@ -58,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!(error instanceof ApiError)) throw error;
     } finally {
       clearToken();
+      queryClient.clear();
       setUser(null);
     }
   }
