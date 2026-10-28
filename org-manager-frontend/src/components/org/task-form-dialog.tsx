@@ -23,18 +23,9 @@ import {
 } from '@/components/ui/select';
 import { useCreateTask } from '@/hooks/use-tasks';
 import { useCreateService, useServices } from '@/hooks/use-services';
-import { ApiError } from '@/lib/api/client';
+import { getErrorMessage } from '@/lib/api/error-message';
 
 const NEW_SERVICE = 'new';
-
-function firstErrorMessage(error: unknown): string {
-  if (error instanceof ApiError) {
-    const first = error.errors ? Object.values(error.errors)[0]?.[0] : undefined;
-    return first ?? error.message;
-  }
-  return 'Connexion impossible. Verifiez votre reseau.';
-}
-
 interface TaskFormDialogProps {
   orgInstanceId: number;
 }
@@ -103,7 +94,7 @@ function TaskForm({ orgInstanceId, onDone }: TaskFormProps) {
       });
       onDone();
     } catch (err) {
-      setError(firstErrorMessage(err));
+      setError(getErrorMessage(err));
     }
   }
 
