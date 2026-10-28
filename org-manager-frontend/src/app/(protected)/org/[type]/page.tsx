@@ -9,6 +9,7 @@ import { TaskList } from '@/components/org/task-list';
 import { useActiveOrgInstances } from '@/hooks/use-active-org-instances';
 import { findCurrentOrgInstance } from '@/lib/dates';
 import type { OrgType } from '@/types/domain';
+import { ArchiveOrgDialog } from '@/components/org/archive-org-dialog.tsx';
 
 const ORG_LABELS: Record<OrgType, string> = { CFG: 'CFG', COMITE: 'Comité' };
 
@@ -74,6 +75,7 @@ function OrgScreen({ type }: { type: OrgType }) {
       <div className="flex-1">
         {selectedInstance && <TaskList orgInstanceId={selectedInstance.id} />}
       </div>
+      {selectedInstance && <ArchiveOrgDialog type={type} instance={selectedInstance} />}
     </main>
   );
 }
