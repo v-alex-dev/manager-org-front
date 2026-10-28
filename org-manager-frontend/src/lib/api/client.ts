@@ -59,7 +59,7 @@ export async function apiFetch<T>(
 
   if (response.status === 422) {
     const payload = await response.json();
-    throw new ApiError(422, 'Donnees invalides.', payload.errors);
+    throw new ApiError(422, payload.message ?? 'Donnees invalides.', payload.errors);
   }
 
   if (!response.ok) {
